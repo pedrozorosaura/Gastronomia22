@@ -1,40 +1,56 @@
-CREATE DATABASE IF NOT EXISTS Gastronomia;
+DROP DATABASE IF EXISTS Gastronomia;
+CREATE DATABASE Gastronomia;
+USE Gastronomia;
 
-Create table Gastronomia.Plato
-idPlato Varchar(25) NOT NULL
-Descripcion Varchar(45) NOT NULL
-Precio DECIMAL(5,2) NOT NULL
-Restaurant Varchar(25) NOT NULL
-Disponible Boolean NOT NULL
-Primary key (idPlato)
-CONSTRAINT FK_Restaurant FOREIGN KEY (Restaurant);
+CREATE TABLE Restaurant(
+idRestaurant SMALLINT NOT NULL,
+Email Varchar (25) NOT NULL,
+Domicilio Varchar (25) NOT NULL,
+Contrasena CHAR (45) NOT NULL,
+PRIMARY KEY (idRestaurant)
+);
 
-Create Table Gastronomia.Restaurant
-idRestaurant SMALLINT NOT NULL
-Email Varchar(25) NOT NULL
-Domicilio VARCHAR(25) NOT NULL
-Contrasena CHAR(N) NOT NULL
-PRIMARY KEY (idRestaurant);
+CREATE TABLE Cliente(
+idNombreC VARCHAR (25) NOT NULL,
+Apellido VARCHAR (25) NOT NULL,
+EmailCliente VARCHAR(45) NOT NULL,
+ContrasenaC CHAR(45),
+PRIMARY KEY (idNombreC)
+);
 
-Create table Gastronomia.Pedido
-idPedido MEDIUMINT NOT NULL
-FechaYHora DATETIME NOT NULL
-Restaurant VARCHAR(25) NOT NULL
-Cliente VARCHAR(25) NOT NULL
-Plato INT NOT NULL
-PrecioUnitario DECIMAL(5,2) NOT NULL
-CantPlato VARCHAR(25) NOT NULL
-PRIMARY KEY (idPedido)
-CONSTRAINT FK_Cliente FOREIGN KEY Cliente
-CONSTRAINT FK_Plato FOREIGN KEY Plato;
+CREATE TABLE Plato(
+idPlato Varchar(25) NOT NULL,
+Descripcion Varchar (45) NOT NULL,
+Precio Decimal (5,2) NOT NULL,
+idRestaurant SMALLINT NOT NULL,
+Disponible Boolean NOT NULL,
+CantPlato TINYINT NOT NULL,
+PRIMARY KEY (idPlato),
+CONSTRAINT FK_Plato_Restaurant FOREIGN KEY (idRestaurant)
+REFERENCES Restaurant (idRestaurant)
+);
 
-Create Table Gastronomia.Cantidad
-CantPlato VARCHAR (25) NOT NULL;
+CREATE TABLE Pedido (
+idPedido MEDIUMINT NOT NULL,
+FechayHora DATETIME NOT NULL,
+idRestaurant SMALLINT NOT NULL,
+idNombreC VARCHAR(25) NOT NULL,
+PrecioUnitario DECIMAL (5,2) NOT NULL,
+CantPlato TINYINT NOT NULL,
+Valoracion TINYINT,
+Descripcion VARCHAR(45),
+PRIMARY KEY (idPedido),
+CONSTRAINT FK_Pedido_Restaurant FOREIGN KEY (idRestaurant)
+REFERENCES Restaurant (idRestaurant)
+);
 
-Create Table Gastronomia.Cliente
-NombreC VARCHAR(25) NOT NULL
-Apellido VARCHAR(25) NOT NULL
-EmailCliente VARCHAR (45) NOT NULL
-ContrasenaC Char(N) NOT NULL
-PRIMARY KEY (NombreC);
-
+CREATE TABLE Menuplato(
+CantPlato TINYINT NOT NULL,
+idPlato VARCHAR (25) NOT NULL,
+idPedido MEDIUMINT NOT NULL,
+PRIMARY KEY (idPlato, idPedido),
+CONSTRAINT FK_MenuPlato_Plato FOREIGN KEY (idPlato)
+REFERENCES Plato (idPlato),
+CONSTRAINT FK_Menuplato_Pedido FOREIGN KEY (idPedido)
+REFERENCES Pedido (idPedido)
+);
