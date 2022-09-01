@@ -1,12 +1,13 @@
 DROP DATABASE IF EXISTS Gastronomia;
 CREATE DATABASE Gastronomia;
 USE Gastronomia;
- 
+
 CREATE TABLE Restaurant(
 idRestaurant SMALLINT NOT NULL,
 Email VARCHAR (25) NOT NULL UNIQUE,
 Domicilio VARCHAR (25) NOT NULL,
 Contrasena CHAR (64) NOT NULL,
+Nombrer VARCHAR (25) NOT NULL,
 PRIMARY KEY (idRestaurant)
 );
  
@@ -29,7 +30,7 @@ Disponible Boolean NOT NULL,
 PRIMARY KEY (idPlato),
 CONSTRAINT FK_Plato_Restaurant FOREIGN KEY (idRestaurant)
 REFERENCES Restaurant (idRestaurant),
-FULLTEXT (nombre)
+FULLTEXT (nombre, descripcion)
 );
  
 CREATE TABLE Pedido (
@@ -58,4 +59,13 @@ REFERENCES Plato (idPlato),
 CONSTRAINT FK_Menuplato_Pedido FOREIGN KEY (idPedido)
 REFERENCES Pedido (idPedido)
 );
- 
+CREATE TABLE VentaResto(
+idResto INT NOT NULL AUTO_INCREMENT,
+Anio SMALLINT NOT NULL,
+MES SMALLINT NOT NULL,
+idPlato INT NOT NULL,
+Monto DECIMAL (5,2) NOT NULL,
+PRIMARY KEY (idResto, idPlato, Anio, MES),
+CONSTRAINT FK_CantPlato FOREIGN KEY (idPlato)
+REFERENCES Menuplato (idPlato)
+);

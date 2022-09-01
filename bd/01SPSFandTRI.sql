@@ -10,10 +10,10 @@ END $$
  
 DELIMITER $$
 DROP PROCEDURE IF EXISTS altaRestaurant $$
-CREATE PROCEDURE altaRestaurant (unidRestaurant SMALLINT, unEmail VARCHAR(25), unDomicilio VARCHAR(25), unContrasena CHAR(64))
+CREATE PROCEDURE altaRestaurant (unidRestaurant SMALLINT, unEmail VARCHAR(25), unDomicilio VARCHAR(25), unContrasena CHAR(64), unNombrer VARCHAR(25))
 BEGIN
-INSERT INTO Restaurant (idRestaurant, Email, Domicilio, Contrasena)
-VALUES (unidRestaurant, unEmail, unDomicilio, unContrasena);
+INSERT INTO Restaurant (idRestaurant, Email, Domicilio, Contrasena, Nombrer)
+VALUES (unidRestaurant, unEmail, unDomicilio, unContrasena, unNombrer);
 END $$
  
  
@@ -21,7 +21,7 @@ DELIMITER $$
 DROP PROCEDURE IF EXISTS altaMenuplato $$
 CREATE PROCEDURE altaMenuplato (unCantPlato TINYINT, unidPlato DECIMAL(5,2), unidPedido MEDIUMINT, unprecioIndividual DECIMAL (5,2))
 BEGIN
-INSERT INTO MenuPlato (CantPlato, idPlato, idPedido, precioIndividual)
+INSERT INTO Menuplato (CantPlato, idPlato, idPedido, precioIndividual)
 VALUES (unCantPlato, unidPlato, unidPedido, unprecioIndividual);
 END $$
  
@@ -83,10 +83,56 @@ END $$
  
 DELIMITER $$
 DROP PROCEDURE IF EXISTS Buscar $$
-CREATE PROCEDURE Buscar (nombre VARCHAR(25))
- 
- BEGIN
- SELECT nombre
- FROM Plato
-WHERE  MATCH (nombre) AGAINST (nombre IN BOOLEAN mode);
+CREATE PROCEDURE Buscar (busqueda VARCHAR(25))
+   BEGIN
+   SELECT nombre, Descripcion, PrecioUnitario
+   FROM Plato
+   JOIN Restaurant on Plato.idRestaurant = Restaurant.idRestaurant
+   WHERE  MATCH (nombre, descripcion) AGAINST (busqueda IN BOOLEAN mode);
+END $$
+
+
+DROP PROCEDURE IF EXISTS altaVentaResto $$
+CREATE PROCEDURE altaVentaResto (unAnio SMALLINT, unMES SMALLINT, unidPlato INT, unMonto DECIMAL (5,2))
+BEGIN
+        INSERT INTO VentaResto (Anio, MES, idPlato, Monto)
+        VALUES (unAnio, unMES, unidPlato, unMonto);
+END $$
+
+DELIMITER $$ 
+DROP TRIGGER IF EXISTS AftInsMenuPlato $$
+CREATE TRIGGER AftInsMenuPlato AFTER INSERT ON Menuplato 
+FOR EACH ROW
+BEGIN 
+    IF (EXISTS (SELECT *
+                FROM VentaResto
+            WHERE idPlato != NEW.idPlato )) THEN
+            CALL altaVentaResto (YEAR(NOW()) , MONTH(NOW()), new.idPlato, SUM(NEW.precioIndividual * NEW.CantPlato));
+	END IF;
+        IF (EXISTS (SELECT *
+                FROM VentaResto
+            WHERE idPlato = NEW.idPlato )) THEN
+            UPDATE VentaResto
+            SET Monto = SUM(NEW.precioIndividual * NEW.CantPlato)
+            WHERE idPlato = NEW.idPlato;
+	END IF;
+END $$ 
+---------------------------------------------------------
+
+DROP TRIGGER IF EXISTS AftDelMenuPlato $$
+CREATE TRIGGER AftDelMenuPlato AFTER DELETE ON Menuplato 
+FOR EACH ROW
+BEGIN 
+    IF (EXISTS (SELECT *
+                FROM VentaResto
+            WHERE idPlato != old.idPlato )) THEN
+            CALL altaVentaResto (YEAR(NOW()) , MONTH(NOW()), old.idPlato, SUM(old.precioIndividual * old.CantPlato));
+	END IF;
+        IF (EXISTS (SELECT *
+                FROM VentaResto
+            WHERE idPlato = old.idPlato )) THEN
+            UPDATE VentaResto
+            SET Monto = SUM(old.precioIndividual * old.CantPlato)
+            WHERE idPlato = old.idPlato;
+	END IF;
 END $$ 
