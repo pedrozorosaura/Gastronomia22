@@ -38,7 +38,7 @@ idPedido MEDIUMINT NOT NULL,
 FechayHora DATETIME NOT NULL,
 idRestaurant SMALLINT NOT NULL,
 idCliente INT NOT NULL,
-precioIndividual DECIMAL (5,2) NOT NULL,
+PrecioUnitario DECIMAL (5,2) NOT NULL,
 Valoracion TINYINT NULL,
 Descripcion VARCHAR(45) NULL,
 PRIMARY KEY (idPedido),
@@ -50,7 +50,7 @@ REFERENCES Cliente (idCliente)
  
 CREATE TABLE Menuplato(
 CantPlato TINYINT NOT NULL,
-precioIndividual  DECIMAL (5,2) NOT NULL,
+PrecioUnitario  DECIMAL (5,2) NOT NULL,
 idPlato INT NOT NULL,
 idPedido MEDIUMINT NOT NULL,
 PRIMARY KEY (idPlato, idPedido),

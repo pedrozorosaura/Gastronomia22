@@ -19,10 +19,10 @@ END $$
  
 DELIMITER $$
 DROP PROCEDURE IF EXISTS altaMenuplato $$
-CREATE PROCEDURE altaMenuplato (unCantPlato TINYINT, unidPlato DECIMAL(5,2), unidPedido MEDIUMINT, unprecioIndividual DECIMAL (5,2))
+CREATE PROCEDURE altaMenuplato (unCantPlato TINYINT, unidPlato DECIMAL(5,2), unidPedido MEDIUMINT, unPrecioUnitario DECIMAL (5,2))
 BEGIN
-INSERT INTO Menuplato (CantPlato, idPlato, idPedido, precioIndividual)
-VALUES (unCantPlato, unidPlato, unidPedido, unprecioIndividual);
+INSERT INTO Menuplato (CantPlato, idPlato, idPedido, PrecioUnitario)
+VALUES (unCantPlato, unidPlato, unidPedido, unPrecioUnitario);
 END $$
  
 DELIMITER $$
@@ -31,13 +31,13 @@ CREATE PROCEDURE altaPedido (unidPedido MEDIUMINT,
                                                              unFechayHora DATETIME,
                                                              unidRestaurant SMALLINT,
                                                              unidCliente INT,
-                                                             unprecioIndividual DECIMAL(5,2),
+                                                             unPrecioUnitario DECIMAL(5,2),
                                                              unValoracion TINYINT,
                                                              unDescripcion VARCHAR(45))
  
 BEGIN
-INSERT INTO Pedido (idPedido, FechayHora, idRestaurant, idCliente, precioIndividual, Valoracion, Descripcion)
-VALUES (unidPedido, unFechayHora, unidRestaurant, unidCliente, unprecioIndividual, unValoracion, unDescripcion);
+INSERT INTO Pedido (idPedido, FechayHora, idRestaurant, idCliente, PrecioUnitario, Valoracion, Descripcion)
+VALUES (unidPedido, unFechayHora, unidRestaurant, unidCliente, unPrecioUnitario, unValoracion, unDescripcion);
 END $$
                                          
  
@@ -69,7 +69,7 @@ CREATE FUNCTION gananciaResto (unidRestaurante SMALLINT,
    
 BEGIN
   DECLARE resultado FLOAT;
-  SELECT  SUM (CantPlato * precioUnitario ) INTO resultado
+  SELECT  SUM (CantPlato * Plato.precioUnitario ) INTO resultado
   FROM Menuplato
   JOIN Plato on Plato.IdPlato = Menuplato.IdPlato
   JOIN Pedido on Pedido.IdPedido = Menuplato.IdPedido
@@ -107,13 +107,13 @@ BEGIN
     IF (EXISTS (SELECT *
                 FROM VentaResto
             WHERE idPlato != NEW.idPlato )) THEN
-            CALL altaVentaResto (YEAR(NOW()) , MONTH(NOW()), new.idPlato, SUM(NEW.precioIndividual * NEW.CantPlato));
+            CALL altaVentaResto (YEAR(NOW()) , MONTH(NOW()), new.idPlato, SUM(NEW.PrecioUnitario.Plato * NEW.CantPlato));
 	END IF;
         IF (EXISTS (SELECT *
                 FROM VentaResto
             WHERE idPlato = NEW.idPlato )) THEN
             UPDATE VentaResto
-            SET Monto = SUM(NEW.precioIndividual * NEW.CantPlato)
+            SET Monto = SUM(NEW.PrecioUnitario.Plato * NEW.CantPlato)
             WHERE idPlato = NEW.idPlato;
 	END IF;
 END $$ 
@@ -126,13 +126,13 @@ BEGIN
     IF (EXISTS (SELECT *
                 FROM VentaResto
             WHERE idPlato != old.idPlato )) THEN
-            CALL altaVentaResto (YEAR(NOW()) , MONTH(NOW()), old.idPlato, SUM(old.precioIndividual * old.CantPlato));
+            CALL altaVentaResto (YEAR(NOW()) , MONTH(NOW()), old.idPlato, SUM(old.PrecioUnitario.Plato * old.CantPlato));
 	END IF;
         IF (EXISTS (SELECT *
                 FROM VentaResto
             WHERE idPlato = old.idPlato )) THEN
             UPDATE VentaResto
-            SET Monto = SUM(old.precioIndividual * old.CantPlato)
+            SET Monto = SUM(old.PrecioUnitario.Plato * old.CantPlato)
             WHERE idPlato = old.idPlato;
 	END IF;
 END $$ 
